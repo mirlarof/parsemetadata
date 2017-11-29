@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using HtmlAgilityPack;
 using Microsoft.AspNetCore.Cors;
+using System;
+using System.Threading.Tasks;
 
 namespace MetaInspector.Controllers
 {
@@ -11,14 +13,16 @@ namespace MetaInspector.Controllers
         // GET api/values
         [HttpGet]
         [EnableCors("AllowAllOrigins")]
-        public MetaData Get([FromQuery]string url)
+        public async Task<MetaData> Get([FromQuery]string url)
         {
             using (var client = new HttpClient())
             {
-                using (var content = client.GetAsync(url).Result.Content.ReadAsStringAsync())
+                if (Uri.TryCreate(url, UriKind.Absolute, out var result))
                 {
+                    var response = await client.GetAsync(result);
+                    var content = await response.Content.ReadAsStringAsync();
                     var doc = new HtmlDocument();
-                    doc.LoadHtml(content.Result);
+                    doc.LoadHtml(content);
                     var metaTags = doc.DocumentNode.SelectNodes("//meta");
                     var metaData = new MetaData();
                     foreach (var tag in metaTags)
@@ -41,6 +45,8 @@ namespace MetaInspector.Controllers
                     }
                     return metaData;
                 }
+
+                return null;
             }
         }
     }
