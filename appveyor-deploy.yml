@@ -28,4 +28,3 @@ on_finish :
 deploy:
 - provider: Environment
   name: parsemetadata
-  artifact: '\MetaInspector\bin\Debug\netcoreapp2.0\publish\WebSite.zip'
