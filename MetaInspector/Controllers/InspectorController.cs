@@ -15,6 +15,8 @@ namespace MetaInspector.Controllers
         [EnableCors("AllowAllOrigins")]
         public async Task<MetaData> Get([FromQuery]string url)
         {
+            url = url.StartsWith("http://") ? url : "http://" + url;
+            
             using (var client = new HttpClient())
             {
                 if (Uri.TryCreate(url, UriKind.Absolute, out var result))
