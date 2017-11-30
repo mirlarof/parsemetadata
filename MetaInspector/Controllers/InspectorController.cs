@@ -27,6 +27,9 @@ namespace MetaInspector.Controllers
                     doc.LoadHtml(content);
                     var metaTags = doc.DocumentNode.SelectNodes("//meta");
                     var metaData = new MetaData();
+
+                    if (metaTags == null) return null;
+
                     foreach (var tag in metaTags)
                     {
                         var tagName = tag.Attributes["name"]?.Value.ToLower();
