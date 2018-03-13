@@ -15,8 +15,9 @@ namespace MetaInspector.Controllers
         [EnableCors("AllowAllOrigins")]
         public async Task<MetaData> Get([FromQuery]string url)
         {
+            url = url.Replace("https://", "http://");
             url = url.StartsWith("http://") ? url : "http://" + url;
-            
+
             using (var client = new HttpClient())
             {
                 if (Uri.TryCreate(url, UriKind.Absolute, out var result))
@@ -47,6 +48,24 @@ namespace MetaInspector.Controllers
                         {
                             metaData.Image = string.IsNullOrEmpty(metaData.Image) ? tagContent.Value : metaData.Image;
                         }
+                    }
+
+                    // if no metadata title, get title
+                    if (string.IsNullOrEmpty(metaData.Title))
+                    {
+                        var title = doc.DocumentNode.SelectSingleNode("//title");
+                        metaData.Title = title?.InnerText;
+                    }
+                    // if no metadata image, get favicon
+                    if (string.IsNullOrEmpty(metaData.Image))
+                    {
+                        var image = doc.DocumentNode.SelectSingleNode("//link[contains(@rel,'icon')]");
+                        metaData.Image = image?.Attributes["href"]?.Value;
+                    }
+                    // If using local path
+                    if(metaData.Image.StartsWith('/'))
+                    {
+                        metaData.Image = result.Host + metaData.Image;
                     }
                     return metaData;
                 }
