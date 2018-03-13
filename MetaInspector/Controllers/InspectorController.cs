@@ -56,16 +56,10 @@ namespace MetaInspector.Controllers
                         var title = doc.DocumentNode.SelectSingleNode("//title");
                         metaData.Title = title?.InnerText;
                     }
-                    // if no metadata image, get favicon
-                    if (string.IsNullOrEmpty(metaData.Image))
-                    {
-                        var image = doc.DocumentNode.SelectSingleNode("//link[contains(@rel,'icon')]");
-                        metaData.Image = image?.Attributes["href"]?.Value;
-                    }
                     // If using local path
                     if(metaData.Image.StartsWith('/'))
                     {
-                        metaData.Image = result.Host + metaData.Image;
+                        metaData.Image = result.Scheme + "://" + result.Host + metaData.Image;
                     }
                     return metaData;
                 }
