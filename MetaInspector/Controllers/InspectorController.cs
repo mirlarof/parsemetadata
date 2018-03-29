@@ -4,6 +4,7 @@ using HtmlAgilityPack;
 using Microsoft.AspNetCore.Cors;
 using System;
 using System.Threading.Tasks;
+using System.Text;
 
 namespace MetaInspector.Controllers
 {
@@ -26,6 +27,19 @@ namespace MetaInspector.Controllers
                     var content = await response.Content.ReadAsStringAsync();
                     var doc = new HtmlDocument();
                     doc.LoadHtml(content);
+
+                    var charset = doc.DocumentNode.SelectSingleNode("//meta[@charset]")?.Attributes["charset"]?.Value ?? string.Empty;
+                    try
+                    {
+                        var encoding = Encoding.GetEncoding(charset);
+                        if (encoding != Encoding.UTF8)
+                        {
+                            var contentBytes = await response.Content.ReadAsByteArrayAsync();
+                            content = encoding.GetString(contentBytes);
+                            doc.LoadHtml(content);
+                        }
+                    } catch (Exception e) { }
+
                     var metaTags = doc.DocumentNode.SelectNodes("//meta");
                     var metaData = new MetaData();
 
@@ -36,17 +50,17 @@ namespace MetaInspector.Controllers
                         var tagName = tag.Attributes["name"]?.Value.ToLower();
                         var tagContent = tag.Attributes["content"];
                         var tagProperty = tag.Attributes["property"]?.Value.ToLower();
-                        if (tagName == "title" || tagName == "twitter:title" || tagProperty == "og:title")
+                        if (string.IsNullOrEmpty(metaData.Title) && (tagName == "title" || tagName == "twitter:title" || tagProperty == "og:title"))
                         {
-                            metaData.Title = string.IsNullOrEmpty(metaData.Title) ? tagContent.Value : metaData.Title;
+                            metaData.Title = tagContent.Value.Trim();
                         }
-                        else if (tagName == "description" || tagName == "twitter:description" || tagProperty == "og:description")
+                        else if (string.IsNullOrEmpty(metaData.Description) && (tagName == "description" || tagName == "twitter:description" || tagProperty == "og:description"))
                         {
-                            metaData.Description = string.IsNullOrEmpty(metaData.Description) ? tagContent.Value : metaData.Description;
+                            metaData.Description = tagContent.Value.Trim();
                         }
-                        else if (tagName == "twitter:image" || tagProperty == "og:image")
+                        else if (string.IsNullOrEmpty(metaData.Image) && (tagName == "twitter:image" || tagProperty == "og:image"))
                         {
-                            metaData.Image = string.IsNullOrEmpty(metaData.Image) ? tagContent.Value : metaData.Image;
+                            metaData.Image = tagContent.Value.Trim();
                         }
                     }
 
