@@ -21,4 +21,4 @@ extends:
     packagename: parsemetadata    
     type: dotnet
     to: nuget
-    nugetServiceConnection: ServiceConnectionNuget
+    nugetServiceConnection: TestNuget 
