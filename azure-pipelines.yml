@@ -5,6 +5,7 @@
 
 trigger:
 - master
+- main
 
 name: 0.3$(Rev:.r)
 
